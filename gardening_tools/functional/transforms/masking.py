@@ -36,11 +36,21 @@ def torch_mask(image: torch.Tensor, pixel_value: float, ratio: float, token_size
     return image, mask
 
 
-def torch_mask_all_channels(image: torch.Tensor, pixel_value: float, ratio: float, token_size: list[int]) -> torch.Tensor:
+def torch_mask_from_mask(image: torch.Tensor, mask: torch.Tensor, pixel_value: float) -> torch.Tensor:
+    image[mask == 0] = pixel_value
+    return image
+
+
+def torch_mask_all_channels(
+    image: torch.Tensor, pixel_value: float, ratio: float, token_size: list[int], reuse_mask: bool = False
+) -> torch.Tensor:
     """
     Expects (c,x,y,z) or (c,x,y) as input.
     """
     image[0], mask = torch_mask(image=image[0], pixel_value=pixel_value, ratio=ratio, token_size=token_size)
     for i in range(1, image.shape[0]):
-        image[i], _ = torch_mask(image=image[i], pixel_value=pixel_value, ratio=ratio, token_size=token_size)
+        if reuse_mask:
+            image[i] = torch_mask_from_mask(image=image[i], mask=mask, pixel_value=pixel_value)
+        else:
+            image[i], _ = torch_mask(image=image[i], pixel_value=pixel_value, ratio=ratio, token_size=token_size)
     return image, mask
