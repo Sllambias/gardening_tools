@@ -36,3 +36,8 @@ class Torch_CopyImageToLabel(BaseTransform):
     def __copy__(self, data_dict):
         data_dict[self.label_key] = data_dict[self.data_key].detach().clone()
         return data_dict
+
+    def __call__(self, data_dict):
+        if self.copy:
+            data_dict = self.__copy__(data_dict)
+        return data_dict

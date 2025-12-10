@@ -25,6 +25,7 @@ dependencies = [
 [project.optional-dependencies]
 extras = [
     "timm>=1.0.22",
+    "einops>=0.8.1",
 ]
 
 [tool.setuptools.packages.find]
