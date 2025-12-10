@@ -18,7 +18,9 @@ def numpy_create_zero_centered_coordinate_matrix(shape):
             )
         ).astype(float)
     if len(shape) == 2:
-        mesh = np.array(np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing="ij")).astype(float)
+        mesh = np.array(
+            np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing="ij")
+        ).astype(float)
 
     for d in range(len(shape)):
         mesh[d] -= (mesh.shape[d + 1] - 1) / 2
@@ -26,9 +28,15 @@ def numpy_create_zero_centered_coordinate_matrix(shape):
     return mesh
 
 
-def torch_create_zero_centered_coordinate_matrix(shape: tuple[int, ...]) -> torch.Tensor:
+def torch_create_zero_centered_coordinate_matrix(
+    shape: tuple[int, ...],
+) -> torch.Tensor:
     # Using standard numpy indexing 'ij', 2D: (H, W) = (y, x), 3D: (D, H, W) = (z, y, x)
-    mesh = torch.stack(torch.meshgrid(*[torch.arange(s, dtype=torch.float32) for s in shape], indexing="ij"))
+    mesh = torch.stack(
+        torch.meshgrid(
+            *[torch.arange(s, dtype=torch.float32) for s in shape], indexing="ij"
+        )
+    )
     for d, s in enumerate(shape):
         mesh[d] -= (s - 1) / 2.0
     return mesh
@@ -52,15 +60,21 @@ def deform_coordinate_matrix(coordinate_matrix, alpha, sigma):
 
 
 def Rx(theta):
-    return np.array([[1, 0, 0], [0, m.cos(theta), -m.sin(theta)], [0, m.sin(theta), m.cos(theta)]])
+    return np.array(
+        [[1, 0, 0], [0, m.cos(theta), -m.sin(theta)], [0, m.sin(theta), m.cos(theta)]]
+    )
 
 
 def Ry(theta):
-    return np.array([[m.cos(theta), 0, m.sin(theta)], [0, 1, 0], [-m.sin(theta), 0, m.cos(theta)]])
+    return np.array(
+        [[m.cos(theta), 0, m.sin(theta)], [0, 1, 0], [-m.sin(theta), 0, m.cos(theta)]]
+    )
 
 
 def Rz(theta):
-    return np.array([[m.cos(theta), -m.sin(theta), 0], [m.sin(theta), m.cos(theta), 0], [0, 0, 1]])
+    return np.array(
+        [[m.cos(theta), -m.sin(theta), 0], [m.sin(theta), m.cos(theta), 0], [0, 0, 1]]
+    )
 
 
 def Rz2D(theta):
@@ -120,7 +134,9 @@ def numpy_spatial(
     assert isinstance(cval, (int, float)), f"got {cval} of type {type(cval)}"
 
     coords = numpy_create_zero_centered_coordinate_matrix(patch_size)
-    image_canvas = np.zeros((image.shape[0], image.shape[1], *patch_size), dtype=np.float32)
+    image_canvas = np.zeros(
+        (image.shape[0], image.shape[1], *patch_size), dtype=np.float32
+    )
 
     # First we apply deformation to the coordinate matrix
     if np.random.uniform() < p_deform:
@@ -139,7 +155,11 @@ def numpy_spatial(
             if np.random.uniform() < p_rot_per_axis:
                 rot_matrix = np.dot(rot_matrix, Rz(z_rot))
 
-        coords = np.dot(coords.reshape(len(patch_size), -1).transpose(), rot_matrix).transpose().reshape(coords.shape)
+        coords = (
+            np.dot(coords.reshape(len(patch_size), -1).transpose(), rot_matrix)
+            .transpose()
+            .reshape(coords.shape)
+        )
 
     # And finally scale it
     # Scaling effect is "inverted"
@@ -176,7 +196,9 @@ def numpy_spatial(
             ).astype(image.dtype)
 
             if clip_to_input_range:
-                image_canvas[b, c] = np.clip(image_canvas[b, c], a_min=img_min, a_max=img_max)
+                image_canvas[b, c] = np.clip(
+                    image_canvas[b, c], a_min=img_min, a_max=img_max
+                )
 
     if label is not None and not skip_label:
         label_canvas = np.zeros(
@@ -187,9 +209,9 @@ def numpy_spatial(
         # Mapping the labelmentations to the distorted coordinates
         for b in range(label.shape[0]):
             for c in range(label.shape[1]):
-                label_canvas[b, c] = map_coordinates(label[b, c], coords, order=0, mode="constant", cval=0.0).astype(
-                    label.dtype
-                )
+                label_canvas[b, c] = map_coordinates(
+                    label[b, c], coords, order=0, mode="constant", cval=0.0
+                ).astype(label.dtype)
         return image_canvas, label_canvas
     return image_canvas, None
 
@@ -223,7 +245,13 @@ def torch_spatial(
 
     # Expand dims if needed
     def _prepare(x):
-        return x[None, None] if orig_ndim == ndim else x[None] if orig_ndim == ndim + 1 else x
+        return (
+            x[None, None]
+            if orig_ndim == ndim
+            else x[None]
+            if orig_ndim == ndim + 1
+            else x
+        )
 
     image = _prepare(image)
     if label is not None:
@@ -298,13 +326,23 @@ def torch_spatial(
         grid = grid[..., [2, 1, 0]]
     else:
         raise ValueError("Only 2D and 3D supported")
-    grid_sample_args = {"mode": interpolation_mode, "padding_mode": "zeros", "align_corners": True}
+    grid_sample_args = {
+        "mode": interpolation_mode,
+        "padding_mode": "zeros",
+        "align_corners": True,
+    }
     image_canvas = F.grid_sample(image, grid, **grid_sample_args)
     if clip_to_input_range:
         image_canvas = torch.clamp(image_canvas, min=image.min(), max=image.max())
 
     if label is not None and not skip_label:
-        label_canvas = F.grid_sample(label.float(), grid, mode="nearest", padding_mode="zeros", align_corners=True)
+        label_canvas = F.grid_sample(
+            label.float(),
+            grid,
+            mode="nearest",
+            padding_mode="zeros",
+            align_corners=True,
+        )
         label_canvas = label_canvas.to(label.dtype)
     else:
         label_canvas = None
@@ -319,5 +357,7 @@ def torch_spatial(
         return x
 
     return _restore(image_canvas, orig_ndim), (
-        _restore(label_canvas, orig_ndim if label is not None else 0) if label_canvas is not None else None
+        _restore(label_canvas, orig_ndim if label is not None else 0)
+        if label_canvas is not None
+        else None
     )

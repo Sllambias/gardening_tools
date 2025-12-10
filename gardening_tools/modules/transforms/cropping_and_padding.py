@@ -1,7 +1,11 @@
 import numpy as np
 import torch
 from gardening_tools.modules.transforms.BaseTransform import BaseTransform
-from gardening_tools.functional.transforms.cropping_and_padding import torch_croppad, numpy_croppad, fit_image_to_patch_size
+from gardening_tools.functional.transforms.cropping_and_padding import (
+    torch_croppad,
+    numpy_croppad,
+    fit_image_to_patch_size,
+)
 from typing import Union, Literal
 
 __all__ = ["Numpy_CropPad", "Torch_CropPad", "Numpy_Pad", "Torch_Pad"]
@@ -27,7 +31,10 @@ class Numpy_CropPad(BaseTransform):
         if pad_value == "min":
             pad_kwargs = {"constant_values": data.min(), "mode": "constant"}
         elif pad_value == "zero":
-            pad_kwargs = {"constant_values": np.zeros(1, dtype=data.dtype), "mode": "constant"}
+            pad_kwargs = {
+                "constant_values": np.zeros(1, dtype=data.dtype),
+                "mode": "constant",
+            }
         elif isinstance(pad_value, int) or isinstance(pad_value, float):
             pad_kwargs = {"constant_values": pad_value, "mode": "constant"}
         elif pad_value == "edge":
@@ -72,11 +79,17 @@ class Numpy_CropPad(BaseTransform):
             data_dict[self.label_key] = label
         return data_dict
 
-    def __call__(self, packed_data_dict=None, image_properties=None, **unpacked_data_dict):
+    def __call__(
+        self, packed_data_dict=None, image_properties=None, **unpacked_data_dict
+    ):
         data_dict = packed_data_dict if packed_data_dict else unpacked_data_dict
 
-        input_shape, target_image_shape, target_label_shape, pad_kwargs = self.get_params(
-            data=data_dict[self.data_key], pad_value=self.pad_value, target_shape=self.patch_size
+        input_shape, target_image_shape, target_label_shape, pad_kwargs = (
+            self.get_params(
+                data=data_dict[self.data_key],
+                pad_value=self.pad_value,
+                target_shape=self.patch_size,
+            )
         )
 
         data_dict = self.__croppad__(
@@ -157,8 +170,12 @@ class Torch_CropPad(BaseTransform):
         return data_dict
 
     def __call__(self, data_dict):
-        input_shape, target_image_shape, target_label_shape, pad_kwargs = self.get_params(
-            data=data_dict[self.data_key], pad_value=self.pad_value, target_shape=self.patch_size
+        input_shape, target_image_shape, target_label_shape, pad_kwargs = (
+            self.get_params(
+                data=data_dict[self.data_key],
+                pad_value=self.pad_value,
+                target_shape=self.patch_size,
+            )
         )
 
         data_dict = self.__croppad__(
@@ -174,13 +191,21 @@ class Torch_CropPad(BaseTransform):
 
 
 class Numpy_Pad(Numpy_CropPad):
-    def __call__(self, packed_data_dict=None, image_properties=None, **unpacked_data_dict):
+    def __call__(
+        self, packed_data_dict=None, image_properties=None, **unpacked_data_dict
+    ):
         data_dict = packed_data_dict if packed_data_dict else unpacked_data_dict
         image_shape = data_dict[self.data_key].shape
         original_patch_size = self.patch_size
         self.patch_size = fit_image_to_patch_size(self.patch_size, image_shape[1:])
-        result = super().__call__(packed_data_dict=packed_data_dict, image_properties=image_properties, **unpacked_data_dict)
-        self.patch_size = original_patch_size  # Reset patch size to original after padding
+        result = super().__call__(
+            packed_data_dict=packed_data_dict,
+            image_properties=image_properties,
+            **unpacked_data_dict,
+        )
+        self.patch_size = (
+            original_patch_size  # Reset patch size to original after padding
+        )
         return result
 
 
@@ -196,7 +221,6 @@ class Torch_Pad(Torch_CropPad):
 
 
 class Torch_CenterCrop(BaseTransform):
-
     def __init__(
         self,
         data_key="image",
@@ -216,18 +240,27 @@ class Torch_CenterCrop(BaseTransform):
 
         if len(self.target_size) == 2:
             h, w = torch.tensor(image.shape[1:])
-            h_delta, w_delta = torch.tensor(image.shape[1:]) - torch.tensor(self.target_size)
+            h_delta, w_delta = torch.tensor(image.shape[1:]) - torch.tensor(
+                self.target_size
+            )
             h1, h2 = torch.floor(h_delta / 2).to(int), torch.ceil(h_delta / 2).to(int)
             w1, w2 = torch.floor(w_delta / 2).to(int), torch.ceil(w_delta / 2).to(int)
             slices = (slice(None, None), slice(h1, h - h2), slice(w1, w - w2))
 
         if len(self.target_size) == 3:
             h, w, d = torch.tensor(image.shape[1:])
-            h_delta, w_delta, d_delta = torch.tensor(image.shape[1:]) - torch.tensor(self.target_size)
+            h_delta, w_delta, d_delta = torch.tensor(image.shape[1:]) - torch.tensor(
+                self.target_size
+            )
             h1, h2 = torch.floor(h_delta / 2).to(int), torch.ceil(h_delta / 2).to(int)
             w1, w2 = torch.floor(w_delta / 2).to(int), torch.ceil(w_delta / 2).to(int)
             d1, d2 = torch.floor(d_delta / 2).to(int), torch.ceil(d_delta / 2).to(int)
-            slices = (slice(None, None), slice(h1, h - h2), slice(w1, w - w2), slice(d1, d - d2))
+            slices = (
+                slice(None, None),
+                slice(h1, h - h2),
+                slice(w1, w - w2),
+                slice(d1, d - d2),
+            )
 
         data_dict[self.data_key] = image[slices]
         if data_dict.get(self.label_key) is not None:

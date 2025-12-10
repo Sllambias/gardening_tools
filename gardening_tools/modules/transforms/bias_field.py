@@ -1,6 +1,9 @@
 from gardening_tools.modules.transforms.BaseTransform import BaseTransform
 import numpy as np
-from gardening_tools.functional.transforms.bias_field import numpy_bias_field, torch_bias_field
+from gardening_tools.functional.transforms.bias_field import (
+    numpy_bias_field,
+    torch_bias_field,
+)
 
 
 class Numpy_BiasField(BaseTransform):
@@ -27,7 +30,9 @@ class Numpy_BiasField(BaseTransform):
         for b in range(data_dict[self.data_key].shape[0]):
             for c in range(data_dict[self.data_key][b].shape[0]):
                 if np.random.uniform() < self.p_per_sample:
-                    data_dict[self.data_key][b, c] = self.__biasField__(data_dict[self.data_key][b, c])
+                    data_dict[self.data_key][b, c] = self.__biasField__(
+                        data_dict[self.data_key][b, c]
+                    )
         return data_dict
 
 
@@ -57,10 +62,14 @@ class Torch_BiasField(BaseTransform):
         if not self.batched:
             for c in range(data_dict[self.data_key].shape[0]):
                 if np.random.uniform() < self.p_per_channel:
-                    data_dict[self.data_key][c] = self.__biasField__(data_dict[self.data_key][c])
+                    data_dict[self.data_key][c] = self.__biasField__(
+                        data_dict[self.data_key][c]
+                    )
         else:
             for b in range(data_dict[self.data_key].shape[0]):
                 for c in range(data_dict[self.data_key].shape[1]):
                     if np.random.uniform() < self.p_per_channel:
-                        data_dict[self.data_key][b, c] = self.__biasField__(data_dict[self.data_key][b, c])
+                        data_dict[self.data_key][b, c] = self.__biasField__(
+                            data_dict[self.data_key][b, c]
+                        )
         return data_dict

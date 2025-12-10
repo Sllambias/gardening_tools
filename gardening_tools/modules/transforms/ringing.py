@@ -1,5 +1,8 @@
 from gardening_tools.modules.transforms.BaseTransform import BaseTransform
-from gardening_tools.functional.transforms.ringing import numpy_gibbs_ringing, torch_gibbs_ringing
+from gardening_tools.functional.transforms.ringing import (
+    numpy_gibbs_ringing,
+    torch_gibbs_ringing,
+)
 import numpy as np
 
 
@@ -25,7 +28,12 @@ class Numpy_GibbsRinging(BaseTransform):
         return cut_freq, axis
 
     def __gibbsRinging__(self, image, num_sample, axis):
-        image = numpy_gibbs_ringing(image, num_sample=num_sample, axis=axis, clip_to_input_range=self.clip_to_input_range)
+        image = numpy_gibbs_ringing(
+            image,
+            num_sample=num_sample,
+            axis=axis,
+            clip_to_input_range=self.clip_to_input_range,
+        )
         return image
 
     def __call__(self, data_dict):
@@ -33,7 +41,9 @@ class Numpy_GibbsRinging(BaseTransform):
             for c in range(data_dict[self.data_key][b].shape[0]):
                 if np.random.uniform() < self.p_per_sample:
                     cut_freq, axis = self.get_params(self.cut_freq, self.axes)
-                    data_dict[self.data_key][b, c] = self.__gibbsRinging__(data_dict[self.data_key][b, c], cut_freq, axis)
+                    data_dict[self.data_key][b, c] = self.__gibbsRinging__(
+                        data_dict[self.data_key][b, c], cut_freq, axis
+                    )
         return data_dict
 
 
@@ -61,7 +71,12 @@ class Torch_GibbsRinging(BaseTransform):
         return cut_freq, axis
 
     def __gibbsRinging__(self, image, num_sample, axis):
-        image = torch_gibbs_ringing(image, num_sample=num_sample, axes=[axis], clip_to_input_range=self.clip_to_input_range)
+        image = torch_gibbs_ringing(
+            image,
+            num_sample=num_sample,
+            axes=[axis],
+            clip_to_input_range=self.clip_to_input_range,
+        )
         return image
 
     def __call__(self, data_dict):
@@ -69,12 +84,16 @@ class Torch_GibbsRinging(BaseTransform):
             for c in range(data_dict[self.data_key].shape[0]):
                 if np.random.uniform() < self.p_per_channel:
                     cut_freq, axis = self.get_params(self.cut_freq, self.axes)
-                    data_dict[self.data_key][c] = self.__gibbsRinging__(data_dict[self.data_key][c], cut_freq, axis)
+                    data_dict[self.data_key][c] = self.__gibbsRinging__(
+                        data_dict[self.data_key][c], cut_freq, axis
+                    )
         else:
             for b in range(data_dict[self.data_key].shape[0]):
                 for c in range(data_dict[self.data_key].shape[1]):
                     if np.random.uniform() < self.p_per_channel:
                         cut_freq, axis = self.get_params(self.cut_freq, self.axes)
-                        data_dict[self.data_key][b, c] = self.__gibbsRinging__(data_dict[self.data_key][b, c], cut_freq, axis)
+                        data_dict[self.data_key][b, c] = self.__gibbsRinging__(
+                            data_dict[self.data_key][b, c], cut_freq, axis
+                        )
 
         return data_dict

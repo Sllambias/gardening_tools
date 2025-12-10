@@ -55,7 +55,9 @@ class Torch_Clamp(BaseTransform):
             else:
                 upper_bound = None
 
-            data_dict[self.data_key][c] = torch.clamp(channel_data, min=lower_bound, max=upper_bound)
+            data_dict[self.data_key][c] = torch.clamp(
+                channel_data, min=lower_bound, max=upper_bound
+            )
 
         return data_dict
 

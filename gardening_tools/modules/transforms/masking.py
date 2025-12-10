@@ -42,7 +42,9 @@ class Torch_Mask(BaseTransform):
             data_dict[self.data_key] = image
             data_dict[self.mask_key] = mask
         else:
-            data_dict[self.mask_key] = torch.empty_like(data_dict[self.data_key], dtype=torch.bool)
+            data_dict[self.mask_key] = torch.empty_like(
+                data_dict[self.data_key], dtype=torch.bool
+            )
             for b in range(data_dict[self.data_key].shape[0]):
                 image, mask = self.__mask__(data_dict[self.data_key][b])
                 data_dict[self.data_key][b] = image

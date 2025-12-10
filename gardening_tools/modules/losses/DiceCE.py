@@ -7,8 +7,8 @@ Isensee, F., Jaeger, P.F., Kohl, S.A.A. et al.
 
 import torch
 from torch import nn
-from gardening_tools.losses.Dice import SoftDiceLoss
-from gardening_tools.losses.CE import CE
+from gardening_tools.modules.losses.Dice import SoftDiceLoss
+from gardening_tools.modules.losses.CE import CE
 
 
 class DiceCE(nn.Module):
@@ -57,7 +57,9 @@ class DiceCE(nn.Module):
         else:
             mask = None
 
-        dc_loss = self.dc(net_output, target, loss_mask=mask) if self.weight_dice != 0 else 0
+        dc_loss = (
+            self.dc(net_output, target, loss_mask=mask) if self.weight_dice != 0 else 0
+        )
         if self.log_dice:
             dc_loss = -torch.log(-dc_loss)
 

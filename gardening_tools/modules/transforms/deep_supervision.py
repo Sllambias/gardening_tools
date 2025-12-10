@@ -3,7 +3,12 @@ from gardening_tools.modules.transforms.BaseTransform import BaseTransform
 
 
 class Torch_DownsampleSegForDS(BaseTransform):
-    def __init__(self, deep_supervision: bool = False, label_key="label", factors=(1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 16)):
+    def __init__(
+        self,
+        deep_supervision: bool = False,
+        label_key="label",
+        factors=(1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 16),
+    ):
         self.deep_supervision = deep_supervision
         self.label_key = label_key
         self.factors = factors
@@ -19,5 +24,7 @@ class Torch_DownsampleSegForDS(BaseTransform):
 
     def __call__(self, data_dict):
         if self.deep_supervision:
-            data_dict[self.label_key] = self.__downsample__(data_dict[self.label_key], self.factors)
+            data_dict[self.label_key] = self.__downsample__(
+                data_dict[self.label_key], self.factors
+            )
         return data_dict

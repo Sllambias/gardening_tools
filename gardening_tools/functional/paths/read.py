@@ -33,4 +33,6 @@ def read_file_to_nifti_or_np(imagepath, dtype=np.float32):
     elif ext in ["csv", "txt"]:
         return np.atleast_1d(np.genfromtxt(imagepath, delimiter=",", dtype=dtype))
     else:
-        raise TypeError(f"File type invalid. Found extension: {ext} and expected one in [nii, nii.gz, png, csv, txt]")
+        raise TypeError(
+            f"File type invalid. Found extension: {ext} and expected one in [nii, nii.gz, png, csv, txt]"
+        )

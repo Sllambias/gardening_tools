@@ -23,7 +23,11 @@ def numpy_gamma(
         img_min = data_sample.min()
         img_max = data_sample.max()
         img_range = img_max - img_min
-        data_sample = np.power(((data_sample - img_min) / float(img_range + epsilon)), gamma) * img_range + img_min
+        data_sample = (
+            np.power(((data_sample - img_min) / float(img_range + epsilon)), gamma)
+            * img_range
+            + img_min
+        )
         if clip_to_input_range:
             data_sample = np.clip(data_sample, a_min=img_min, a_max=img_max)
     else:
@@ -36,7 +40,10 @@ def numpy_gamma(
             img_max = data_sample[c].max()
             img_range = img_max - img_min
             data_sample[c] = (
-                np.power(((data_sample[c] - img_min) / float(img_range + epsilon)), gamma) * float(img_range + epsilon)
+                np.power(
+                    ((data_sample[c] - img_min) / float(img_range + epsilon)), gamma
+                )
+                * float(img_range + epsilon)
                 + img_min
             )
             if clip_to_input_range:
@@ -61,13 +68,18 @@ def torch_gamma(
         if torch.rand(1).item() < 0.5 and gamma_range[0] < 1:
             gamma = torch.rand(1).item() * (1 - gamma_range[0]) + gamma_range[0]
         else:
-            gamma = torch.rand(1).item() * (gamma_range[1] - max(gamma_range[0], 1)) + max(gamma_range[0], 1)
+            gamma = torch.rand(1).item() * (
+                gamma_range[1] - max(gamma_range[0], 1)
+            ) + max(gamma_range[0], 1)
 
         img_min = image.min()
         img_max = image.max()
         img_range = img_max - img_min
 
-        image = torch.pow(((image - img_min) / (img_range + epsilon)), gamma) * img_range + img_min
+        image = (
+            torch.pow(((image - img_min) / (img_range + epsilon)), gamma) * img_range
+            + img_min
+        )
 
         if clip_to_input_range:
             image = torch.clamp(image, min=img_min, max=img_max)
@@ -76,13 +88,19 @@ def torch_gamma(
             if torch.rand(1).item() < 0.5 and gamma_range[0] < 1:
                 gamma = torch.rand(1).item() * (1 - gamma_range[0]) + gamma_range[0]
             else:
-                gamma = torch.rand(1).item() * (gamma_range[1] - max(gamma_range[0], 1)) + max(gamma_range[0], 1)
+                gamma = torch.rand(1).item() * (
+                    gamma_range[1] - max(gamma_range[0], 1)
+                ) + max(gamma_range[0], 1)
 
             img_min = image[c].min()
             img_max = image[c].max()
             img_range = img_max - img_min
 
-            image[c] = torch.pow(((image[c] - img_min) / (img_range + epsilon)), gamma) * (img_range + epsilon) + img_min
+            image[c] = (
+                torch.pow(((image[c] - img_min) / (img_range + epsilon)), gamma)
+                * (img_range + epsilon)
+                + img_min
+            )
 
             if clip_to_input_range:
                 image[c] = torch.clamp(image[c], min=img_min, max=img_max)

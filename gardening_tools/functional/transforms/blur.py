@@ -15,7 +15,9 @@ def numpy_blur(image, sigma, clip_to_input_range):
     return image
 
 
-def torch_blur(image: torch.tensor, sigma: float, clip_to_input_range: bool = True) -> torch.tensor:
+def torch_blur(
+    image: torch.tensor, sigma: float, clip_to_input_range: bool = True
+) -> torch.tensor:
     img_min = image.min()
     img_max = image.max()
 
@@ -35,7 +37,9 @@ def blur_2D(image: torch.tensor, sigma: float) -> torch.tensor:
     assert image.ndim == 2, "Expected [H, W] tensor"
 
     image = image.unsqueeze(0).unsqueeze(0)
-    image = TF.gaussian_blur(image, kernel_size=int(2 * round(3 * sigma) + 1), sigma=sigma)
+    image = TF.gaussian_blur(
+        image, kernel_size=int(2 * round(3 * sigma) + 1), sigma=sigma
+    )
     return image.squeeze(0).squeeze(0)
 
 
@@ -62,7 +66,9 @@ def blur_3D(image: torch.Tensor, sigma: float) -> torch.Tensor:
 
         shape = volume.shape
         volume = volume.view(-1, 1, shape[-1])
-        volume = torch.nn.functional.conv1d(volume, kernel.to(volume.device), padding=kernel.shape[-1] // 2)
+        volume = torch.nn.functional.conv1d(
+            volume, kernel.to(volume.device), padding=kernel.shape[-1] // 2
+        )
         volume = volume.view(shape)
         volume = volume.permute(permute_order).contiguous()
 

@@ -3,7 +3,9 @@ from gardening_tools.functional.normalization import volume_wise_znorm, ct_norma
 
 
 class Torch_Normalize(BaseTransform):
-    def __init__(self, normalize: bool = False, data_key: str = "image", fn=volume_wise_znorm):
+    def __init__(
+        self, normalize: bool = False, data_key: str = "image", fn=volume_wise_znorm
+    ):
         self.normalize = normalize
         self.data_key = data_key
         self.fn = fn
@@ -29,7 +31,13 @@ class Torch_Normalize(BaseTransform):
 
 
 class Torch_CT_NormalizeC0(BaseTransform):
-    def __init__(self, normalize: bool = False, data_key: str = "image", non_ct_fn=volume_wise_znorm, ct_fn=ct_normalization):
+    def __init__(
+        self,
+        normalize: bool = False,
+        data_key: str = "image",
+        non_ct_fn=volume_wise_znorm,
+        ct_fn=ct_normalization,
+    ):
         self.normalize = normalize
         self.data_key = data_key
         self.ct_fn = ct_fn

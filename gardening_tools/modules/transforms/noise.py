@@ -31,16 +31,22 @@ class Numpy_AdditiveNoise(BaseTransform):
         return mean, sigma
 
     def __additiveNoise__(self, image, mean, sigma):
-        image = numpy_additive_noise(image=image, mean=mean, sigma=sigma, clip_to_input_range=self.clip_to_input_range)
+        image = numpy_additive_noise(
+            image=image,
+            mean=mean,
+            sigma=sigma,
+            clip_to_input_range=self.clip_to_input_range,
+        )
         return image
 
     def __call__(self, data_dict):
-
         for b in range(data_dict[self.data_key].shape[0]):
             for c in range(data_dict[self.data_key][b].shape[0]):
                 mean, sigma = self.get_params(self.mean, self.sigma)
                 if np.random.uniform() < self.p_per_sample:
-                    data_dict[self.data_key][b, c] = self.__additiveNoise__(data_dict[self.data_key][b, c], mean, sigma)
+                    data_dict[self.data_key][b, c] = self.__additiveNoise__(
+                        data_dict[self.data_key][b, c], mean, sigma
+                    )
         return data_dict
 
 
@@ -66,7 +72,12 @@ class Numpy_MultiplicativeNoise(BaseTransform):
         return mean, sigma
 
     def __multiplicativeNoise__(self, image, mean, sigma):
-        image = numpy_multiplicative_noise(image=image, mean=mean, sigma=sigma, clip_to_input_range=self.clip_to_input_range)
+        image = numpy_multiplicative_noise(
+            image=image,
+            mean=mean,
+            sigma=sigma,
+            clip_to_input_range=self.clip_to_input_range,
+        )
         return image
 
     def __call__(self, data_dict):
@@ -74,7 +85,9 @@ class Numpy_MultiplicativeNoise(BaseTransform):
             for c in range(data_dict[self.data_key][b].shape[0]):
                 if np.random.uniform() < self.p_per_sample:
                     mean, sigma = self.get_params(self.mean, self.sigma)
-                    data_dict[self.data_key][b, c] = self.__multiplicativeNoise__(data_dict[self.data_key][b, c], mean, sigma)
+                    data_dict[self.data_key][b, c] = self.__multiplicativeNoise__(
+                        data_dict[self.data_key][b, c], mean, sigma
+                    )
         return data_dict
 
 
@@ -102,7 +115,12 @@ class Torch_AdditiveNoise(BaseTransform):
         return mean, sigma
 
     def __additiveNoise__(self, image, mean, sigma):
-        image = torch_additive_noise(image=image, mean=mean, sigma=sigma, clip_to_input_range=self.clip_to_input_range)
+        image = torch_additive_noise(
+            image=image,
+            mean=mean,
+            sigma=sigma,
+            clip_to_input_range=self.clip_to_input_range,
+        )
         return image
 
     def __call__(self, data_dict):
@@ -110,13 +128,17 @@ class Torch_AdditiveNoise(BaseTransform):
             for c in range(data_dict[self.data_key].shape[0]):
                 if np.random.uniform() < self.p_per_channel:
                     mean, sigma = self.get_params(self.mean, self.sigma)
-                    data_dict[self.data_key][c] = self.__additiveNoise__(data_dict[self.data_key][c], mean, sigma)
+                    data_dict[self.data_key][c] = self.__additiveNoise__(
+                        data_dict[self.data_key][c], mean, sigma
+                    )
         else:
             for b in range(data_dict[self.data_key].shape[0]):
                 for c in range(data_dict[self.data_key].shape[1]):
                     if np.random.uniform() < self.p_per_channel:
                         mean, sigma = self.get_params(self.mean, self.sigma)
-                        data_dict[self.data_key][b, c] = self.__additiveNoise__(data_dict[self.data_key][b, c], mean, sigma)
+                        data_dict[self.data_key][b, c] = self.__additiveNoise__(
+                            data_dict[self.data_key][b, c], mean, sigma
+                        )
 
         return data_dict
 
@@ -145,7 +167,12 @@ class Torch_MultiplicativeNoise(BaseTransform):
         return mean, sigma
 
     def __multiplicativeNoise__(self, image, mean, sigma):
-        image = torch_multiplicative_noise(image=image, mean=mean, sigma=sigma, clip_to_input_range=self.clip_to_input_range)
+        image = torch_multiplicative_noise(
+            image=image,
+            mean=mean,
+            sigma=sigma,
+            clip_to_input_range=self.clip_to_input_range,
+        )
         return image
 
     def __call__(self, data_dict):
@@ -153,7 +180,9 @@ class Torch_MultiplicativeNoise(BaseTransform):
             for c in range(data_dict[self.data_key].shape[0]):
                 if np.random.uniform() < self.p_per_channel:
                     mean, sigma = self.get_params(self.mean, self.sigma)
-                    data_dict[self.data_key][c] = self.__multiplicativeNoise__(data_dict[self.data_key][c], mean, sigma)
+                    data_dict[self.data_key][c] = self.__multiplicativeNoise__(
+                        data_dict[self.data_key][c], mean, sigma
+                    )
         else:
             for b in range(data_dict[self.data_key].shape[0]):
                 for c in range(data_dict[self.data_key].shape[1]):

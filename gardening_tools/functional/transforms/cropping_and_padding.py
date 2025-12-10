@@ -115,7 +115,9 @@ def numpy_croppad_3D_case_from_3D(
             if image.shape[d + 1] < patch_size[d]:
                 crop_start_idx += [0]
             else:
-                crop_start_idx += [np.random.randint(image.shape[d + 1] - patch_size[d] + 1)]
+                crop_start_idx += [
+                    np.random.randint(image.shape[d + 1] - patch_size[d] + 1)
+                ]
     else:
         location = select_foreground_voxel_to_include(foreground_locations)
         for d in range(3):
@@ -205,7 +207,9 @@ def numpy_croppad_2D_case_from_3D(
             if image.shape[d + 2] < patch_size[d]:
                 crop_start_idx += [0]
             else:
-                crop_start_idx += [np.random.randint(image.shape[d + 2] - patch_size[d] + 1)]
+                crop_start_idx += [
+                    np.random.randint(image.shape[d + 2] - patch_size[d] + 1)
+                ]
     else:
         location = select_foreground_voxel_to_include(foreground_locations)
         x_idx = location[0]
@@ -288,7 +292,9 @@ def numpy_croppad_2D_case_from_2D(
             if image.shape[d + 1] < patch_size[d]:
                 crop_start_idx += [0]
             else:
-                crop_start_idx += [np.random.randint(image.shape[d + 1] - patch_size[d] + 1)]
+                crop_start_idx += [
+                    np.random.randint(image.shape[d + 1] - patch_size[d] + 1)
+                ]
     else:
         location = select_foreground_voxel_to_include(foreground_locations)
         for d in range(2):
@@ -422,7 +428,9 @@ def torch_croppad_3D_case_from_3D(
             if image.shape[d + 1] < patch_size[d]:
                 crop_start_idx += [0]
             else:
-                crop_start_idx += [np.random.randint(image.shape[d + 1] - patch_size[d] + 1)]
+                crop_start_idx += [
+                    np.random.randint(image.shape[d + 1] - patch_size[d] + 1)
+                ]
     else:
         location = select_foreground_voxel_to_include(foreground_locations)
         for d in range(3):
@@ -530,7 +538,9 @@ def torch_croppad_2D_case_from_3D(
             if image.shape[d + 2] < patch_size[d]:
                 crop_start_idx += [0]
             else:
-                crop_start_idx += [np.random.randint(image.shape[d + 2] - patch_size[d] + 1)]
+                crop_start_idx += [
+                    np.random.randint(image.shape[d + 2] - patch_size[d] + 1)
+                ]
     else:
         location = select_foreground_voxel_to_include(foreground_locations)
         x_idx = location[0]
@@ -627,7 +637,9 @@ def torch_croppad_2D_case_from_2D(
             if image.shape[d + 1] < patch_size[d]:
                 crop_start_idx += [0]
             else:
-                crop_start_idx += [np.random.randint(image.shape[d + 1] - patch_size[d] + 1)]
+                crop_start_idx += [
+                    np.random.randint(image.shape[d + 1] - patch_size[d] + 1)
+                ]
     else:
         location = select_foreground_voxel_to_include(foreground_locations)
         for d in range(2):

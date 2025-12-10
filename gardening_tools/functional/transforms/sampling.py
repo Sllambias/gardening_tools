@@ -5,7 +5,9 @@ from typing import Sequence, List
 from skimage.transform import resize
 
 
-def torch_downsample_label(label: torch.Tensor, factors: Sequence[float]) -> List[torch.Tensor]:
+def torch_downsample_label(
+    label: torch.Tensor, factors: Sequence[float]
+) -> List[torch.Tensor]:
     """
     Nearest-neighbour down-sampling for label volumes stored as **(B, C, X, Y, Z)**.
 
@@ -65,7 +67,9 @@ def torch_resize(
     else:
         raise ValueError("Image must be 3D or 4D.")
 
-    result = F.interpolate(image.unsqueeze(0), size=tuple(target_size), mode=mode).squeeze(0)
+    result = F.interpolate(
+        image.unsqueeze(0), size=tuple(target_size), mode=mode
+    ).squeeze(0)
 
     if clip_to_input_range:
         result = result.clamp(min=img_min.item(), max=img_max.item())
@@ -112,7 +116,9 @@ def torch_simulate_lowres(
         raise ValueError("Image must be 3D or 4D.")
 
     downsampled = F.interpolate(image, size=tuple(target_shape), mode=mode_down)
-    upsampled = F.interpolate(downsampled, size=tuple(original_shape), mode=mode_up, align_corners=False)
+    upsampled = F.interpolate(
+        downsampled, size=tuple(original_shape), mode=mode_up, align_corners=False
+    )
     result = upsampled.squeeze(0).squeeze(0)
 
     if clip_to_input_range:

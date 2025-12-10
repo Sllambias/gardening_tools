@@ -24,11 +24,20 @@ class BaseNet(nn.Module):
         target_state_dict = {
             k: v
             for k, v in target_state_dict.items()
-            if (k in current_state_dict) and (current_state_dict[k].shape == target_state_dict[k].shape)
+            if (k in current_state_dict)
+            and (current_state_dict[k].shape == target_state_dict[k].shape)
         }
         super().load_state_dict(target_state_dict, *args, **kwargs)
 
-    def predict(self, mode, data, patch_size, overlap, sliding_window_prediction=True, mirror=False):
+    def predict(
+        self,
+        mode,
+        data,
+        patch_size,
+        overlap,
+        sliding_window_prediction=True,
+        mirror=False,
+    ):
         if not sliding_window_prediction:
             return self._full_image_predict(data)
 
@@ -41,14 +50,26 @@ class BaseNet(nn.Module):
 
         pred = predict_fn(data, patch_size, overlap)
         if mirror:
-            pred += torch.flip(predict_fn(torch.flip(data, (2,)), patch_size, overlap), (2,))
-            pred += torch.flip(predict_fn(torch.flip(data, (3,)), patch_size, overlap), (3,))
-            pred += torch.flip(predict_fn(torch.flip(data, (2, 3)), patch_size, overlap), (2, 3))
+            pred += torch.flip(
+                predict_fn(torch.flip(data, (2,)), patch_size, overlap), (2,)
+            )
+            pred += torch.flip(
+                predict_fn(torch.flip(data, (3,)), patch_size, overlap), (3,)
+            )
+            pred += torch.flip(
+                predict_fn(torch.flip(data, (2, 3)), patch_size, overlap), (2, 3)
+            )
             div = 4
             if mode == "3D":
-                pred += torch.flip(predict_fn(torch.flip(data, (4,)), patch_size, overlap), (4,))
-                pred += torch.flip(predict_fn(torch.flip(data, (2, 4)), patch_size, overlap), (2, 4))
-                pred += torch.flip(predict_fn(torch.flip(data, (3, 4)), patch_size, overlap), (3, 4))
+                pred += torch.flip(
+                    predict_fn(torch.flip(data, (4,)), patch_size, overlap), (4,)
+                )
+                pred += torch.flip(
+                    predict_fn(torch.flip(data, (2, 4)), patch_size, overlap), (2, 4)
+                )
+                pred += torch.flip(
+                    predict_fn(torch.flip(data, (3, 4)), patch_size, overlap), (3, 4)
+                )
                 pred += torch.flip(
                     predict_fn(torch.flip(data, (2, 3, 4)), patch_size, overlap),
                     (2, 3, 4),
@@ -74,14 +95,18 @@ class BaseNet(nn.Module):
             device=data.device,
         )
 
-        x_steps, y_steps, z_steps = get_steps_for_sliding_window(data.shape[2:], patch_size, overlap)
+        x_steps, y_steps, z_steps = get_steps_for_sliding_window(
+            data.shape[2:], patch_size, overlap
+        )
         px, py, pz = patch_size
 
         for xs in x_steps:
             for ys in y_steps:
                 for zs in z_steps:
                     # check if out of bounds
-                    out = self.forward(data[:, :, xs : xs + px, ys : ys + py, zs : zs + pz])
+                    out = self.forward(
+                        data[:, :, xs : xs + px, ys : ys + py, zs : zs + pz]
+                    )
                     canvas[:, :, xs : xs + px, ys : ys + py, zs : zs + pz] += out
         return canvas
 
@@ -98,7 +123,9 @@ class BaseNet(nn.Module):
 
         # If we have 5 dimensions we are working with 3D data, and need to predict each slice.
         if len(data.shape) == 5:
-            x_steps, y_steps = get_steps_for_sliding_window(data.shape[3:], patch_size, overlap)
+            x_steps, y_steps = get_steps_for_sliding_window(
+                data.shape[3:], patch_size, overlap
+            )
             for idx in range(data.shape[2]):
                 for xs in x_steps:
                     for ys in y_steps:
@@ -107,7 +134,9 @@ class BaseNet(nn.Module):
             return canvas
 
         # else we proceed with the data as 2D
-        x_steps, y_steps = get_steps_for_sliding_window(data.shape[2:], patch_size, overlap)
+        x_steps, y_steps = get_steps_for_sliding_window(
+            data.shape[2:], patch_size, overlap
+        )
 
         for xs in x_steps:
             for ys in y_steps:

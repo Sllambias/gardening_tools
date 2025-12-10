@@ -1,5 +1,8 @@
 import numpy as np
-from gardening_tools.functional.transforms.motion_ghosting import numpy_motion_ghosting, torch_motion_ghosting
+from gardening_tools.functional.transforms.motion_ghosting import (
+    numpy_motion_ghosting,
+    torch_motion_ghosting,
+)
 from gardening_tools.modules.transforms.BaseTransform import BaseTransform
 from typing import Tuple
 
@@ -22,7 +25,9 @@ class Numpy_MotionGhosting(BaseTransform):
         self.clip_to_input_range = clip_to_input_range
 
     @staticmethod
-    def get_params(alpha: Tuple[float], num_reps: Tuple[float], axes: Tuple[float]) -> Tuple[float]:
+    def get_params(
+        alpha: Tuple[float], num_reps: Tuple[float], axes: Tuple[float]
+    ) -> Tuple[float]:
         alpha = np.random.uniform(*alpha)
         num_reps = np.random.randint(*num_reps)
         axis = np.random.randint(*axes)
@@ -30,7 +35,11 @@ class Numpy_MotionGhosting(BaseTransform):
 
     def __motionGhosting__(self, image, alpha, num_reps, axis):
         image = numpy_motion_ghosting(
-            image=image, alpha=alpha, num_reps=num_reps, axis=axis, clip_to_input_range=self.clip_to_input_range
+            image=image,
+            alpha=alpha,
+            num_reps=num_reps,
+            axis=axis,
+            clip_to_input_range=self.clip_to_input_range,
         )
         return image
 
@@ -38,7 +47,9 @@ class Numpy_MotionGhosting(BaseTransform):
         for b in range(data_dict[self.data_key].shape[0]):
             for c in range(data_dict[self.data_key][b].shape[0]):
                 if np.random.uniform() < self.p_per_sample:
-                    alpha, num_reps, axis = self.get_params(self.alpha, self.num_reps, self.axes)
+                    alpha, num_reps, axis = self.get_params(
+                        self.alpha, self.num_reps, self.axes
+                    )
                     data_dict[self.data_key][b, c] = self.__motionGhosting__(
                         data_dict[self.data_key][b, c], alpha, num_reps, axis
                     )
@@ -65,7 +76,9 @@ class Torch_MotionGhosting(BaseTransform):
         self.batched = batched
 
     @staticmethod
-    def get_params(alpha: Tuple[float], num_reps: Tuple[float], axes: Tuple[float]) -> Tuple[float]:
+    def get_params(
+        alpha: Tuple[float], num_reps: Tuple[float], axes: Tuple[float]
+    ) -> Tuple[float]:
         alpha = np.random.uniform(*alpha)
         num_reps = np.random.randint(*num_reps)
         axis = np.random.randint(*axes)
@@ -73,7 +86,11 @@ class Torch_MotionGhosting(BaseTransform):
 
     def __motionGhosting__(self, image, alpha, num_reps, axis):
         image = torch_motion_ghosting(
-            image=image, alpha=alpha, num_reps=num_reps, axis=axis, clip_to_input_range=self.clip_to_input_range
+            image=image,
+            alpha=alpha,
+            num_reps=num_reps,
+            axis=axis,
+            clip_to_input_range=self.clip_to_input_range,
         )
         return image
 
@@ -81,13 +98,19 @@ class Torch_MotionGhosting(BaseTransform):
         if not self.batched:
             for c in range(data_dict[self.data_key].shape[0]):
                 if np.random.uniform() < self.p_per_channel:
-                    alpha, num_reps, axis = self.get_params(self.alpha, self.num_reps, self.axes)
-                    data_dict[self.data_key][c] = self.__motionGhosting__(data_dict[self.data_key][c], alpha, num_reps, axis)
+                    alpha, num_reps, axis = self.get_params(
+                        self.alpha, self.num_reps, self.axes
+                    )
+                    data_dict[self.data_key][c] = self.__motionGhosting__(
+                        data_dict[self.data_key][c], alpha, num_reps, axis
+                    )
         else:
             for b in range(data_dict[self.data_key].shape[0]):
                 for c in range(data_dict[self.data_key].shape[1]):
                     if np.random.uniform() < self.p_per_channel:
-                        alpha, num_reps, axis = self.get_params(self.alpha, self.num_reps, self.axes)
+                        alpha, num_reps, axis = self.get_params(
+                            self.alpha, self.num_reps, self.axes
+                        )
                         data_dict[self.data_key][b, c] = self.__motionGhosting__(
                             data_dict[self.data_key][b, c], alpha, num_reps, axis
                         )
