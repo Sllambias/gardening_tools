@@ -6,7 +6,7 @@ from gardening_tools.modules.networks.components.blocks import (
     ResidualBlock,
     MultiLayerConvDropoutNormNonlin,
 )
-from gardening_tools.modules.networks.components.encoders import ResidualEncoder
+from gardening_tools.modules.networks.components.encoders import ResidualUNetEncoder
 from gardening_tools.modules.networks.components.decoders import ResidualUNetDecoder
 from typing import List, Tuple, Type, Union
 
@@ -54,7 +54,7 @@ class ResidualEncoderUNet(BaseNet):
 
         self.stem_weight_name = "encoder.stem.conv1.conv.weight"
 
-        self.encoder = ResidualEncoder(
+        self.encoder = ResidualUNetEncoder(
             input_channels=input_channels,
             features_per_stage=features_per_stage,
             conv_op=conv_op,

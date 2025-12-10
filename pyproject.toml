@@ -1,6 +1,6 @@
 [project]
 name = "gardening_tools"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
   { name="Sebastian Llambias", email="llambias@live.com" },
 ]

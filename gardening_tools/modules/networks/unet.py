@@ -2,11 +2,12 @@ import logging
 import torch
 import torch.nn as nn
 from gardening_tools.modules.networks.components.blocks import (
-    DoubleConvDropoutNormNonlin,
     MultiLayerConvDropoutNormNonlin,
 )
 from gardening_tools.modules.networks.components.heads import ClsRegHead
 from gardening_tools.modules.networks.BaseNet import BaseNet
+from gardening_tools.modules.networks.components.decoders import UNetDecoder
+from gardening_tools.modules.networks.components.encoders import UNetEncoder
 
 
 class UNet(BaseNet):
