@@ -1,6 +1,7 @@
 import torch
+from abc import abstractmethod
 from torch import nn
-from gardening_tools.networks.utils import get_steps_for_sliding_window
+from gardening_tools.modules.networks.utils import get_steps_for_sliding_window
 
 
 class BaseNet(nn.Module):
@@ -10,13 +11,13 @@ class BaseNet(nn.Module):
         self.abbreviation: str = None
         self.dimensions: int = None
 
+    @abstractmethod
     def forward(self):
         """
         implement in individual trainers.
         DO NOT INCLUDE FINAL SOFTMAX/SIGMOID ETC.
         WILL BE HANDLED BY LOSS FUNCTIONS
         """
-        pass
 
     def load_state_dict(self, target_state_dict, *args, **kwargs):
         current_state_dict = self.state_dict()
