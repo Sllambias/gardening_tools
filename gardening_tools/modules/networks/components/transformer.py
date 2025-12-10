@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from asparagus.modules.networks.components.layers import LayerNormNd
-from asparagus.modules.networks.components.utils import convert_dim_to_conv_op
+from gardening_tools.modules.networks.components.layers import LayerNormNd
+from gardening_tools.modules.networks.components.utils import convert_dim_to_conv_op
 from torch import nn
 from typing import Tuple
 
@@ -29,7 +29,11 @@ class PatchEmbed(nn.Module):
         super().__init__()
 
         self.proj = convert_dim_to_conv_op(len(patch_size))(
-            input_channels, embed_dim, kernel_size=patch_size, stride=patch_size, padding=0
+            input_channels,
+            embed_dim,
+            kernel_size=patch_size,
+            stride=patch_size,
+            padding=0,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -66,23 +70,37 @@ class PatchDecode(nn.Module):
         self.num_classes = out_channels
 
         num_stages = int(np.log(max(patch_size)) / np.log(2))
-        strides = [[2 if (p / 2**n) % 2 == 0 else 1 for p in patch_size] for n in range(num_stages)][::-1]
+        strides = [
+            [2 if (p / 2**n) % 2 == 0 else 1 for p in patch_size]
+            for n in range(num_stages)
+        ][::-1]
         dim_red = (embed_dim / (2 * out_channels)) ** (1 / num_stages)
 
         # don't question me
-        channels = [embed_dim] + [_round_to_8(embed_dim / dim_red ** (x + 1)) for x in range(num_stages)]
+        channels = [embed_dim] + [
+            _round_to_8(embed_dim / dim_red ** (x + 1)) for x in range(num_stages)
+        ]
         channels[-1] = out_channels
 
         stages = []
         for s in range(num_stages - 1):
             stages.append(
                 nn.Sequential(
-                    nn.ConvTranspose3d(channels[s], channels[s + 1], kernel_size=strides[s], stride=strides[s]),
+                    nn.ConvTranspose3d(
+                        channels[s],
+                        channels[s + 1],
+                        kernel_size=strides[s],
+                        stride=strides[s],
+                    ),
                     norm(channels[s + 1]),
                     activation(),
                 )
             )
-        stages.append(nn.ConvTranspose3d(channels[-2], channels[-1], kernel_size=strides[-1], stride=strides[-1]))
+        stages.append(
+            nn.ConvTranspose3d(
+                channels[-2], channels[-1], kernel_size=strides[-1], stride=strides[-1]
+            )
+        )
         self.decode = nn.Sequential(*stages)
 
     def forward(self, x):
