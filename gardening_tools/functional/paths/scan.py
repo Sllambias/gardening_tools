@@ -3,7 +3,11 @@ from typing import Optional, List
 
 
 def subdirs(
-    folder: str, join: bool = True, prefix: Optional[str] = None, suffix: Optional[str] = None, sort: bool = True
+    folder: str,
+    join: bool = True,
+    prefix: Optional[str] = None,
+    suffix: Optional[str] = None,
+    sort: bool = True,
 ) -> List[str]:
     """
     implementation by: https://github.com/MIC-DKFZ/batchgenerators
@@ -24,21 +28,29 @@ def subdirs(
     return subdirectories
 
 
-def subfiles(folder: str, join: bool = True, prefix: str = None, suffix: str = None, sort: bool = True) -> List[str]:
-    """
-    implementation by: https://github.com/MIC-DKFZ/batchgenerators
-    """
+def subfiles(
+    folder: str,
+    join: bool = True,
+    prefix: str = None,
+    suffix: str = None,
+    sort: bool = True,
+) -> List[str]:
     if join:
-        l = os.path.join
+        res = [
+            os.path.join(folder, i)
+            for i in os.listdir(folder)
+            if os.path.isfile(os.path.join(folder, i))
+            and (prefix is None or i.startswith(prefix))
+            and (suffix is None or i.endswith(suffix))
+        ]
     else:
-        l = lambda x, y: y
-    res = [
-        l(folder, i)
-        for i in os.listdir(folder)
-        if os.path.isfile(os.path.join(folder, i))
-        and (prefix is None or i.startswith(prefix))
-        and (suffix is None or i.endswith(suffix))
-    ]
+        res = [
+            i
+            for i in os.listdir(folder)
+            if os.path.isfile(os.path.join(folder, i))
+            and (prefix is None or i.startswith(prefix))
+            and (suffix is None or i.endswith(suffix))
+        ]
     if sort:
         res.sort()
     return res

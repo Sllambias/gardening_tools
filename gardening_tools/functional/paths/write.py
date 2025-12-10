@@ -4,8 +4,8 @@ import numpy as np
 import pickle
 import json
 from PIL import Image
-from gardening_tools.nibabel_utils import reorient_nib_image
-from gardening_tools.paths.scan import subfiles
+from gardening_tools.functional.nibabel_utils import reorient_nib_image
+from gardening_tools.functional.paths.scan import subfiles
 
 
 def save_json(obj, p):
@@ -29,7 +29,9 @@ def save_nifti_from_numpy(pred, outpath, properties, compression=9):
     )
     if properties["nifti_metadata"]["reoriented"]:
         pred = reorient_nib_image(
-            pred, properties["nifti_metadata"]["final_direction"], properties["nifti_metadata"]["original_orientation"]
+            pred,
+            properties["nifti_metadata"]["final_direction"],
+            properties["nifti_metadata"]["original_orientation"],
         )
     nib.save(
         pred,
@@ -49,7 +51,9 @@ def save_txt_from_numpy(pred, outpath):
     del pred
 
 
-def save_prediction_from_logits(logits, outpath, properties, save_format: str = "nii.gz", compression=9):
+def save_prediction_from_logits(
+    logits, outpath, properties, save_format: str = "nii.gz", compression=9
+):
     """
     Expects input of shape (b,c,x,y,z) or (b,c,x,y)
     """
@@ -63,7 +67,9 @@ def save_prediction_from_logits(logits, outpath, properties, save_format: str = 
     elif "nii.gz" in save_format:
         save_nifti_from_numpy(pred, outpath, properties, compression=compression)
     else:
-        raise ValueError(f"Unsupported save format: {save_format}. Supported formats are png, txt, nii.gz.")
+        raise ValueError(
+            f"Unsupported save format: {save_format}. Supported formats are png, txt, nii.gz."
+        )
 
 
 def save_multilabel_prediction_from_logits(logits, outpath, properties, compression=9):
@@ -108,7 +114,9 @@ def merge_softmax_from_folders(folders: list, outpath, method="sum"):
         )
 
     for case in cases:
-        files_for_case = [np.load(os.path.join(folder, case), allow_pickle=True) for folder in folders]
+        files_for_case = [
+            np.load(os.path.join(folder, case), allow_pickle=True) for folder in folders
+        ]
         properties_for_case = files_for_case[0]["properties"]
         files_for_case = [file["data"].astype(np.float32) for file in files_for_case]
 
