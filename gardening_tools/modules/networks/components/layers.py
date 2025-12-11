@@ -13,5 +13,8 @@ class LayerNormNd(nn.Module):
         u = x.mean(1, keepdim=True)
         s = (x - u).pow(2).mean(1, keepdim=True)
         x = (x - u) / torch.sqrt(s + self.eps)
-        x = self.weight[None, :, *tuple([None] * (x.ndim - 2))] * x + self.bias[None, :, *tuple([None] * (x.ndim - 2))]
+        x = (
+            self.weight[None, :, *tuple([None] * (x.ndim - 2))] * x
+            + self.bias[None, :, *tuple([None] * (x.ndim - 2))]
+        )
         return x

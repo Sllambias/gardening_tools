@@ -89,7 +89,6 @@ class Eva(nn.Module):
             self.patch_drop = PatchDropout(
                 patch_drop_rate,
                 num_prefix_tokens=self.num_prefix_tokens,
-                return_indices=True,
             )
         else:
             self.patch_drop = None

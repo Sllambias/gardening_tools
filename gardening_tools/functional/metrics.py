@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def dice(tp, fp, tn, fn):  # noqa: U100
+def dice(tp, fp, tn, fn):
     try:
         return (2 * tp) / (2 * tp + fp + fn)
     except (ZeroDivisionError, RuntimeWarning):
@@ -18,7 +18,7 @@ def dice_per_label(tp_list, fp_list, tn_list, fn_list):
     ]
 
 
-def jaccard(tp, fp, tn, fn):  # noqa: U100
+def jaccard(tp, fp, tn, fn):
     try:
         return (tp) / (tp + fp + fn)
     except (ZeroDivisionError, RuntimeWarning):
@@ -35,7 +35,7 @@ def jaccard_per_label(tp_list, fp_list, tn_list, fn_list):
     ]
 
 
-def sensitivity(tp, fp, tn, fn):  # noqa: U100
+def sensitivity(tp, fp, tn, fn):
     try:
         return tp / (tp + fn)
     except (ZeroDivisionError, RuntimeWarning):
@@ -45,7 +45,7 @@ def sensitivity(tp, fp, tn, fn):  # noqa: U100
             return np.nan
 
 
-def specificity(tp, fp, tn, fn):  # noqa: U100
+def specificity(tp, fp, tn, fn):
     try:
         return tn / (tn + fp)
     except (ZeroDivisionError, RuntimeWarning):
@@ -55,7 +55,7 @@ def specificity(tp, fp, tn, fn):  # noqa: U100
             return np.nan
 
 
-def precision(tp, fp, tn, fn):  # noqa: U100
+def precision(tp, fp, tn, fn):
     try:
         return tp / (tp + fp)
     except (ZeroDivisionError, RuntimeWarning):
@@ -65,7 +65,7 @@ def precision(tp, fp, tn, fn):  # noqa: U100
             return np.nan
 
 
-def volume_similarity(tp, fp, tn, fn):  # noqa: U100
+def volume_similarity(tp, fp, tn, fn):
     try:
         return 1 - abs(fn - fp) / (2 * tp + fn + fp)
     except (ZeroDivisionError, RuntimeWarning):
@@ -75,7 +75,7 @@ def volume_similarity(tp, fp, tn, fn):  # noqa: U100
             return np.nan
 
 
-def f1(tp, fp, tn, fn):  # noqa: U100
+def f1(tp, fp, tn, fn):
     try:
         prec = precision(tp, fp, tn, fn)
         sens = sensitivity(tp, fp, tn, fn)
@@ -97,21 +97,21 @@ def accuracy(tp, fp, tn, fn):
             return np.nan
 
 
-def TP(tp, fp, tn, fn):  # noqa: U100
+def TP(tp, fp, tn, fn):
     return tp
 
 
-def FP(tp, fp, tn, fn):  # noqa: U100
+def FP(tp, fp, tn, fn):
     return fp
 
 
-def FN(tp, fp, tn, fn):  # noqa: U100
+def FN(tp, fp, tn, fn):
     return fn
 
 
-def total_pos_gt(tp, fp, tn, fn):  # noqa: U100
+def total_pos_gt(tp, fp, tn, fn):
     return tp + fn
 
 
-def total_pos_pred(tp, fp, tn, fn):  # noqa: U100
+def total_pos_pred(tp, fp, tn, fn):
     return tp + fp

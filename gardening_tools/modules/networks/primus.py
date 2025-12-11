@@ -55,10 +55,10 @@ class Primus(BaseNet):
         super().__init__()
 
         self.stem_weight_name = (
-            "down_projection.proj.weight"  # used during weight loading of pt for ft
+            "encoder.proj.weight"  # used during weight loading of pt for ft
         )
 
-        self.down_projection = PatchEmbed(patch_embed_size, input_channels, embed_dim)
+        self.encoder = PatchEmbed(patch_embed_size, input_channels, embed_dim)
         self.decoder = PatchDecode(
             patch_embed_size,
             embed_dim,
@@ -104,7 +104,7 @@ class Primus(BaseNet):
 
         self.num_classes = num_classes
 
-        self.down_projection.apply(InitWeights_He(1e-2))
+        self.encoder.apply(InitWeights_He(1e-2))
         self.decoder.apply(InitWeights_He(1e-2))
         # eva has its own initialization
 
@@ -148,7 +148,7 @@ class Primus(BaseNet):
 
     def forward(self, x, ret_mask=False):
         FW, FH, FD = x.shape[2:]  # Full W , ...
-        x = self.down_projection(x)
+        x = self.encoder(x)
         # last output of the encoder is the input to EVA
         B, C, W, H, D = x.shape
         num_patches = W * H * D
