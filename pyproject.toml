@@ -5,8 +5,12 @@ authors = [
   { name="Sebastian Llambias", email="llambias@live.com" },
 ]
 description = ""
+license = { text = "Apache-2.0" }
 readme = "README.md"
 requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
 keywords = ['gardening tools', 'plant care','garden management']
 
 dependencies = [
