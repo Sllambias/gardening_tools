@@ -67,6 +67,11 @@ class UNet(BaseNet):
         enc = self.encoder(x)
         return self.decoder(enc)
 
+    def forward_with_features(self, x):
+        skips = self.encoder(x)
+        output = self.decoder(skips)
+        return output, skips[-1]
+
 
 class UNetCLSREG(BaseNet):
     def __init__(

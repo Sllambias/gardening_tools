@@ -25,9 +25,7 @@ class ResidualEncoderUNet(BaseNet):
         conv_bias: bool = True,
         deep_supervision: bool = False,
         encoder_basic_block: Type[ResidualBlock] = ResidualBlock,
-        decoder_basic_block: Type[
-            MultiLayerConvDropoutNormNonlin
-        ] = MultiLayerConvDropoutNormNonlin,
+        decoder_basic_block: Type[MultiLayerConvDropoutNormNonlin] = MultiLayerConvDropoutNormNonlin,
         norm_op_kwargs={"eps": 1e-05, "affine": True},
         dropout_op=None,
         dropout_op_kwargs=None,
@@ -94,3 +92,8 @@ class ResidualEncoderUNet(BaseNet):
     def forward(self, x):
         skips = self.encoder(x)
         return self.decoder(skips)
+
+    def forward_with_features(self, x):
+        skips = self.encoder(x)
+        output = self.decoder(skips)
+        return output, skips[-1]
