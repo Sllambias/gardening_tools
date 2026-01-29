@@ -35,7 +35,6 @@ class BaseNet(nn.Module):
         data,
         patch_size,
         overlap,
-        sliding_window_prediction=True,
         mirror=False,
     ):
         if len(patch_size) == 3:
