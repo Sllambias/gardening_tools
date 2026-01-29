@@ -30,19 +30,22 @@ class BaseNet(nn.Module):
         }
         super().load_state_dict(target_state_dict, *args, **kwargs)
 
-    def predict(
+    def sliding_window_predict(
         self,
-        mode,
         data,
         patch_size,
         overlap,
         sliding_window_prediction=True,
         mirror=False,
     ):
-        if not sliding_window_prediction:
-            return self._full_image_predict(data)
-
-        assert mode in ["3D", "2D"]
+        if len(patch_size) == 3:
+            mode = "3D"
+        elif len(patch_size) == 2:
+            mode = "2D"
+        else:
+            raise ValueError(
+                f"patch_size must be of length 2 or 3, but got length: {len(patch_size)} from: {patch_size}"
+            )
 
         if mode == "3D":
             predict_fn = self._sliding_window_predict3D
