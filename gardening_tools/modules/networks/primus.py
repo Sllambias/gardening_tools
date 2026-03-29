@@ -54,9 +54,7 @@ class Primus(BaseNet):
 
         super().__init__()
 
-        self.stem_weight_name = (
-            "encoder.proj.weight"  # used during weight loading of pt for ft
-        )
+        self.stem_weight_name = "encoder.proj.weight"  # used during weight loading of pt for ft
 
         self.encoder = PatchEmbed(patch_embed_size, input_channels, embed_dim)
         self.decoder = PatchDecode(
@@ -72,9 +70,7 @@ class Primus(BaseNet):
             embed_dim=embed_dim,
             depth=eva_depth,
             num_heads=eva_numheads,
-            ref_feat_shape=tuple(
-                [i // ds for i, ds in zip(input_shape, patch_embed_size)]
-            ),
+            ref_feat_shape=tuple([i // ds for i, ds in zip(input_shape, patch_embed_size)]),
             num_reg_tokens=num_register_tokens,
             use_rot_pos_emb=use_rot_pos_emb,
             use_abs_pos_emb=use_abs_pos_embed,
@@ -94,9 +90,7 @@ class Primus(BaseNet):
 
         if num_register_tokens > 0:
             self.register_tokens = (
-                nn.Parameter(torch.zeros(1, num_register_tokens, embed_dim))
-                if num_register_tokens
-                else None
+                nn.Parameter(torch.zeros(1, num_register_tokens, embed_dim)) if num_register_tokens else None
             )
             nn.init.normal_(self.register_tokens, std=1e-6)
         else:
@@ -131,12 +125,8 @@ class Primus(BaseNet):
             # masked_pos_prior = torch.tensor([j for j in range(num_patches) if j not in kept_pos], device=device)
             # replacement of list comprehension
             # kept_pos_tensor = torch.tensor(kept_pos, device=device)  # Ensure kept_pos is a tensor
-            all_indices = torch.arange(
-                num_patches, device=device
-            )  # Create tensor of all indices
-            mask = torch.ones(
-                num_patches, device=device, dtype=torch.bool
-            )  # Start with all True
+            all_indices = torch.arange(num_patches, device=device)  # Create tensor of all indices
+            mask = torch.ones(num_patches, device=device, dtype=torch.bool)  # Start with all True
             mask[kept_pos] = False  # Set kept positions to False
             masked_pos = all_indices[mask]  # Extract indices not in kept_pos
 
@@ -147,6 +137,22 @@ class Primus(BaseNet):
         return (restored, restored_mask)
 
     def forward(self, x, ret_mask=False):
+        x, full_mask = self.encode(x, ret_mask=ret_mask)
+        dec_out = self.decoder(x)
+        if ret_mask:
+            return dec_out, full_mask
+        else:
+            return dec_out
+
+    def forward_with_features(self, x, ret_mask=False):
+        features, full_mask = self.encode(x, ret_mask=ret_mask)
+        dec_out = self.decoder(features)
+        if ret_mask:
+            return dec_out, features, full_mask
+        else:
+            return dec_out, features
+
+    def encode(self, x, ret_mask=False):
         FW, FH, FD = x.shape[2:]  # Full W , ...
         x = self.encoder(x)
         # last output of the encoder is the input to EVA
@@ -167,28 +173,18 @@ class Primus(BaseNet):
         if self.register_tokens is not None:
             x = x[:, self.register_tokens.shape[1] :]  # Removes the register tokens
         # In-fill in-active patches with empty tokens
-        restored_x, restoration_mask = self.restore_full_sequence(
-            x, keep_indices, num_patches
-        )
+        restored_x, restoration_mask = self.restore_full_sequence(x, keep_indices, num_patches)
         x = rearrange(restored_x, "b (h w d) c -> b c w h d", h=H, w=W, d=D)
-        if restoration_mask is not None:
+        if restoration_mask is not None and ret_mask:
             mask = rearrange(restoration_mask, "b (h w d) -> b w h d", h=H, w=W, d=D)
             full_mask = (
-                mask.repeat_interleave(FW // W, dim=1)
-                .repeat_interleave(FH // H, dim=2)
-                .repeat_interleave(FD // D, dim=3)
+                mask.repeat_interleave(FW // W, dim=1).repeat_interleave(FH // H, dim=2).repeat_interleave(FD // D, dim=3)
             )
-            full_mask = full_mask[
-                :, None, ...
-            ]  # Add channel dimension  # [B, 1, W, H, D]
+            full_mask = full_mask[:, None, ...]  # Add channel dimension  # [B, 1, W, H, D]
         else:
             full_mask = None
 
-        dec_out = self.decoder(x)
-        if ret_mask:
-            return dec_out, full_mask
-        else:
-            return dec_out
+        return x, full_mask
 
     def compute_conv_feature_map_size(self, input_size):
         raise NotImplementedError("yuck")
