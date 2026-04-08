@@ -67,9 +67,7 @@ class Eva(nn.Module):
         if rope_kwargs is None:
             rope_kwargs = {}
 
-        self.num_features = self.embed_dim = (
-            embed_dim  # num_features for consistency with other models
-        )
+        self.num_features = self.embed_dim = embed_dim  # num_features for consistency with other models
         self.dynamic_img_size = dynamic_img_size
         self.grad_checkpointing = False
 
@@ -78,17 +76,14 @@ class Eva(nn.Module):
         num_patches = np.prod(ref_feat_shape)
 
         self.pos_embed = (
-            nn.Parameter(
-                torch.zeros(1, num_patches + self.num_prefix_tokens, embed_dim)
-            )
-            if use_abs_pos_emb
-            else None
+            nn.Parameter(torch.zeros(1, num_patches + self.num_prefix_tokens, embed_dim)) if use_abs_pos_emb else None
         )
         self.pos_drop = nn.Dropout(p=pos_drop_rate)
         if patch_drop_rate > 0:
             self.patch_drop = PatchDropout(
                 patch_drop_rate,
                 num_prefix_tokens=self.num_prefix_tokens,
+                return_indices=True,
             )
         else:
             self.patch_drop = None
@@ -96,9 +91,7 @@ class Eva(nn.Module):
         if use_rot_pos_emb:
             if len(ref_feat_shape) == 3:
                 rope_dim = round(embed_dim // num_heads / 1.5)
-                assert rope_dim == embed_dim / num_heads / 1.5, (
-                    "rope dim must be divsible by (num_heads * 1.5)"
-                )
+                assert rope_dim == embed_dim / num_heads / 1.5, "rope dim must be divsible by (num_heads * 1.5)"
                 assert rope_dim % 4 == 0, "rope dim must be divisible by 4"
             else:
                 rope_dim = embed_dim // num_heads
@@ -112,9 +105,7 @@ class Eva(nn.Module):
         else:
             self.rope = None
 
-        dpr = [
-            x.item() for x in torch.linspace(0, drop_path_rate, depth)
-        ]  # stochastic depth decay rule
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         block_fn = block_fn
         self.blocks = nn.ModuleList(
             [
@@ -177,11 +168,9 @@ class Eva(nn.Module):
         )
         return matcher
 
-    def _pos_embed(self, x) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    def _pos_embed(self, x) -> Tuple[torch.Tensor, torch.Tensor, Optional[torch.Tensor]]:
         if self.dynamic_img_size:
-            raise NotImplementedError(
-                "dynamic_img_size is not implemented at the moment"
-            )
+            raise NotImplementedError("dynamic_img_size is not implemented at the moment")
         else:
             pos_embed = self.pos_embed
             rot_pos_embed = self.rope.get_embed() if self.rope is not None else None
