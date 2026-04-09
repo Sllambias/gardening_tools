@@ -7,7 +7,7 @@ All main commits are uploaded to TestPyPi: https://test.pypi.org/project/gardeni
 
 # Release
 The repo will automatically deploy to PyPi for tagged commits on main:
-To tag head_
+To tag head:
 ```
 git tag 0.x.y
 ```
