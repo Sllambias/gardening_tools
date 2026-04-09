@@ -148,9 +148,9 @@ class Primus(BaseNet):
         features, full_mask = self.encode(x, ret_mask=ret_mask)
         dec_out = self.decoder(features)
         if ret_mask:
-            return dec_out, features, full_mask
+            return dec_out, features.detach(), full_mask
         else:
-            return dec_out, features
+            return dec_out, features.detach()
 
     def encode(self, x, ret_mask=False):
         FW, FH, FD = x.shape[2:]  # Full W , ...
