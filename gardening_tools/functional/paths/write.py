@@ -27,7 +27,7 @@ def save_nifti_from_numpy(pred, outpath, properties, compression=9):
         header=None,
         dtype=np.uint8,
     )
-    if properties["nifti_metadata"]["reoriented"]:
+    if properties["nifti_metadata"].get("reoriented", False):
         pred = reorient_nib_image(
             pred,
             properties["nifti_metadata"]["final_direction"],
@@ -35,40 +35,38 @@ def save_nifti_from_numpy(pred, outpath, properties, compression=9):
         )
     nib.save(
         pred,
-        outpath + ".nii.gz",
+        outpath,
     )
     del pred
 
 
 def save_png_from_numpy(pred, outpath):
     pred = Image.fromarray(pred.astype(np.uint8))
-    pred.save(outpath + ".png")
+    pred.save(outpath)
     del pred
 
 
 def save_txt_from_numpy(pred, outpath):
-    np.savetxt(outpath + ".txt", np.atleast_1d(pred), fmt="%i", delimiter=",")
+    np.savetxt(outpath, np.atleast_1d(pred), fmt="%i", delimiter=",")
     del pred
 
 
-def save_prediction_from_logits(
-    logits, outpath, properties, save_format: str = "nii.gz", compression=9
-):
+def save_prediction_from_logits(logits, outpath, properties, compression=9):
     """
     Expects input of shape (b,c,x,y,z) or (b,c,x,y)
     """
     if logits.shape[1] > 1:
         logits = np.argmax(logits, 1)
     pred = np.squeeze(logits)
-    if "png" in save_format:
+    if outpath.endswith(".png"):
         save_png_from_numpy(pred, outpath)
-    elif "txt" in save_format:
+    elif outpath.endswith(".txt"):
         save_txt_from_numpy(pred, outpath)
-    elif "nii.gz" in save_format:
+    elif outpath.endswith(".nii.gz"):
         save_nifti_from_numpy(pred, outpath, properties, compression=compression)
     else:
         raise ValueError(
-            f"Unsupported save format: {save_format}. Supported formats are png, txt, nii.gz."
+            f"Unsupported save format. Supported formats are png, txt, nii.gz and got file path: {outpath}"
         )
 
 
