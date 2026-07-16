@@ -3,6 +3,7 @@ import json
 import pickle
 import yaml
 import numpy as np
+from pathlib import Path
 from PIL import Image
 import nibabel as nib
 
@@ -25,14 +26,21 @@ def load_yaml(file: str):
 
 
 def read_file_to_nifti_or_np(imagepath, dtype=np.float32):
-    ext = imagepath.split(os.extsep, 1)[1]
-    if ext in ["nii", "nii.gz"]:
-        return nib.load(imagepath)
-    elif ext in ["png", "jpg", "jpeg"]:
-        return np.array(Image.open(imagepath).convert("L"), dtype=dtype)
-    elif ext in ["csv", "txt"]:
-        return np.atleast_1d(np.genfromtxt(imagepath, delimiter=",", dtype=dtype))
-    else:
-        raise TypeError(
-            f"File type invalid. Found extension: {ext} and expected one in [nii, nii.gz, png, csv, txt]"
-        )
+    path = Path(imagepath)
+    suffixes = [s.lower() for s in path.suffixes]
+
+    if suffixes[-2:] == [".nii", ".gz"] or suffixes[-1:] == [".nii"]:
+        return nib.load(str(path))
+
+    ext = suffixes[-1] if suffixes else ""
+
+    if ext in {".png", ".jpg", ".jpeg"}:
+        return np.array(Image.open(path).convert("L"), dtype=dtype)
+
+    if ext in {".csv", ".txt"}:
+        return np.atleast_1d(np.genfromtxt(path, delimiter=",", dtype=dtype))
+
+    raise TypeError(
+        f"File type invalid. Found extension: {''.join(suffixes) or '<none>'} "
+        "and expected one in [.nii, .nii.gz, .png, .jpg, .jpeg, .csv, .txt]"
+    )
