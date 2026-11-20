@@ -36,7 +36,9 @@ class BaseNet(nn.Module):
         patch_size,
         overlap,
         mirror=False,
+        batch_size=1,
     ):
+        """batch_size is the number of windows passed through the network at once."""
         if len(patch_size) == 3:
             mode = "3D"
         elif len(patch_size) == 2:
@@ -51,30 +53,30 @@ class BaseNet(nn.Module):
         elif mode == "2D":
             predict_fn = self._sliding_window_predict2D
 
-        pred = predict_fn(data, patch_size, overlap)
+        pred = predict_fn(data, patch_size, overlap, batch_size)
         if mirror:
             pred += torch.flip(
-                predict_fn(torch.flip(data, (2,)), patch_size, overlap), (2,)
+                predict_fn(torch.flip(data, (2,)), patch_size, overlap, batch_size), (2,)
             )
             pred += torch.flip(
-                predict_fn(torch.flip(data, (3,)), patch_size, overlap), (3,)
+                predict_fn(torch.flip(data, (3,)), patch_size, overlap, batch_size), (3,)
             )
             pred += torch.flip(
-                predict_fn(torch.flip(data, (2, 3)), patch_size, overlap), (2, 3)
+                predict_fn(torch.flip(data, (2, 3)), patch_size, overlap, batch_size), (2, 3)
             )
             div = 4
             if mode == "3D":
                 pred += torch.flip(
-                    predict_fn(torch.flip(data, (4,)), patch_size, overlap), (4,)
+                    predict_fn(torch.flip(data, (4,)), patch_size, overlap, batch_size), (4,)
                 )
                 pred += torch.flip(
-                    predict_fn(torch.flip(data, (2, 4)), patch_size, overlap), (2, 4)
+                    predict_fn(torch.flip(data, (2, 4)), patch_size, overlap, batch_size), (2, 4)
                 )
                 pred += torch.flip(
-                    predict_fn(torch.flip(data, (3, 4)), patch_size, overlap), (3, 4)
+                    predict_fn(torch.flip(data, (3, 4)), patch_size, overlap, batch_size), (3, 4)
                 )
                 pred += torch.flip(
-                    predict_fn(torch.flip(data, (2, 3, 4)), patch_size, overlap),
+                    predict_fn(torch.flip(data, (2, 3, 4)), patch_size, overlap, batch_size),
                     (2, 3, 4),
                 )
                 div += 4
@@ -89,7 +91,17 @@ class BaseNet(nn.Module):
         """
         return self.forward(data)
 
-    def _sliding_window_predict3D(self, data, patch_size, overlap):
+    def predict_windows(self, data, canvas, windows, batch_size):
+        """Predict the windows (index tuples into data and canvas) batch_size at a time and add them to canvas."""
+        for start in range(0, len(windows), batch_size):
+            chunk = windows[start : start + batch_size]
+            patches = torch.cat([data[window] for window in chunk])
+            out = self.forward(patches)
+            for i, window in enumerate(chunk):
+                canvas[window] += out[i : i + 1]
+        return canvas
+
+    def _sliding_window_predict3D(self, data, patch_size, overlap, batch_size=1):
         """
         Sliding window prediction implementation
         """
@@ -103,17 +115,16 @@ class BaseNet(nn.Module):
         )
         px, py, pz = patch_size
 
+        windows = []
         for xs in x_steps:
             for ys in y_steps:
                 for zs in z_steps:
-                    # check if out of bounds
-                    out = self.forward(
-                        data[:, :, xs : xs + px, ys : ys + py, zs : zs + pz]
+                    windows.append(
+                        (slice(None), slice(None), slice(xs, xs + px), slice(ys, ys + py), slice(zs, zs + pz))
                     )
-                    canvas[:, :, xs : xs + px, ys : ys + py, zs : zs + pz] += out
-        return canvas
+        return self.predict_windows(data, canvas, windows, batch_size)
 
-    def _sliding_window_predict2D(self, data, patch_size, overlap):
+    def _sliding_window_predict2D(self, data, patch_size, overlap, batch_size=1):
         """
         Sliding window prediction implementation
         """
@@ -129,21 +140,20 @@ class BaseNet(nn.Module):
             x_steps, y_steps = get_steps_for_sliding_window(
                 data.shape[3:], patch_size, overlap
             )
+            windows = []
             for idx in range(data.shape[2]):
                 for xs in x_steps:
                     for ys in y_steps:
-                        out = self.forward(data[:, :, idx, xs : xs + px, ys : ys + py])
-                        canvas[:, :, idx, xs : xs + px, ys : ys + py] += out
-            return canvas
+                        windows.append((slice(None), slice(None), idx, slice(xs, xs + px), slice(ys, ys + py)))
+            return self.predict_windows(data, canvas, windows, batch_size)
 
         # else we proceed with the data as 2D
         x_steps, y_steps = get_steps_for_sliding_window(
             data.shape[2:], patch_size, overlap
         )
 
+        windows = []
         for xs in x_steps:
             for ys in y_steps:
-                # check if out of bounds
-                out = self.forward(data[:, :, xs : xs + px, ys : ys + py])
-                canvas[:, :, xs : xs + px, ys : ys + py] += out
-        return canvas
+                windows.append((slice(None), slice(None), slice(xs, xs + px), slice(ys, ys + py)))
+        return self.predict_windows(data, canvas, windows, batch_size)
