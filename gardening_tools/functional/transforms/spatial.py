@@ -216,6 +216,29 @@ def numpy_spatial(
     return image_canvas, None
 
 
+def torch_crop_without_resampling(
+    image: torch.Tensor,
+    label: Optional[torch.Tensor],
+    patch_size: tuple[int],
+    random_crop: bool,
+):
+    """Slice a patch out of a (B, C, ...) image and label, without interpolation."""
+    slices = [slice(None), slice(None)]
+    for d in range(len(patch_size)):
+        room = image.shape[d + 2] - patch_size[d]
+        if random_crop:
+            start = int(torch.randint(0, room + 1, (1,)))
+        else:
+            start = room // 2
+        slices.append(slice(start, start + patch_size[d]))
+
+    image_patch = image[tuple(slices)].clone()
+    label_patch = None
+    if label is not None:
+        label_patch = label[tuple(slices)].clone()
+    return image_patch, label_patch
+
+
 def torch_spatial(
     image: torch.Tensor,
     patch_size: tuple[int],
@@ -253,6 +276,15 @@ def torch_spatial(
             else x
         )
 
+    def _restore(x: Optional[torch.Tensor], target_ndim: int) -> Optional[torch.Tensor]:
+        if x is None:
+            return None
+        # For 3D volumes, we want to keep the spatial dimensions
+        current_dims = x.ndim
+        for i in range(current_dims - target_ndim):
+            x = x.squeeze(0)
+        return x
+
     image = _prepare(image)
     if label is not None:
         label = _prepare(label)
@@ -260,8 +292,23 @@ def torch_spatial(
     if not do_crop:
         patch_size = image.shape[2:]
 
+    apply_deform = torch.rand(1).item() < p_deform
+    apply_rot = torch.rand(1).item() < p_rot
+    apply_scale = torch.rand(1).item() < p_scale
+
+    # Without deformation, rotation or scaling the patch can be sliced out directly instead of resampled
+    patch_fits = all(image.shape[d + 2] >= patch_size[d] for d in range(ndim))
+    if not (apply_deform or apply_rot or apply_scale) and patch_fits:
+        image_patch, label_patch = torch_crop_without_resampling(
+            image=image,
+            label=None if skip_label else label,
+            patch_size=patch_size,
+            random_crop=random_crop and do_crop,
+        )
+        return _restore(image_patch, orig_ndim), _restore(label_patch, orig_ndim)
+
     coords = torch_create_zero_centered_coordinate_matrix(patch_size).to(device, dtype)
-    if torch.rand(1) < p_deform:
+    if apply_deform:
         if ndim == 2:
             # Separable 2D blur
             noise = torch.randn(1, 1, *patch_size, device=device, dtype=dtype)
@@ -288,7 +335,7 @@ def torch_spatial(
                 noise = F.conv3d(noise, kernel, padding=padding, groups=ndim)
         coords += noise[0] * alpha
 
-    if torch.rand(1) < p_rot:
+    if apply_rot:
         rot = torch.eye(ndim, device=device, dtype=dtype)
         if ndim == 2:
             rot = rot @ torch.from_numpy(Rz2D(z_rot)).to(device=device, dtype=dtype)
@@ -301,7 +348,7 @@ def torch_spatial(
                 rot = rot @ torch.from_numpy(Rz(z_rot)).to(device=device, dtype=dtype)
         coords = (rot @ coords.view(ndim, -1)).view_as(coords)
 
-    if torch.rand(1) < p_scale:
+    if apply_scale:
         coords *= scale_factor
 
     if random_crop and do_crop:
@@ -346,15 +393,6 @@ def torch_spatial(
         label_canvas = label_canvas.to(label.dtype)
     else:
         label_canvas = None
-
-    def _restore(x: Optional[torch.Tensor], target_ndim: int) -> Optional[torch.Tensor]:
-        if x is None:
-            return None
-        # For 3D volumes, we want to keep the spatial dimensions
-        current_dims = x.ndim
-        for i in range(current_dims - target_ndim):
-            x = x.squeeze(0)
-        return x
 
     return _restore(image_canvas, orig_ndim), (
         _restore(label_canvas, orig_ndim if label is not None else 0)
