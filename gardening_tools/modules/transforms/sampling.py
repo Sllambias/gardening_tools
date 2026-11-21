@@ -13,10 +13,14 @@ class Torch_Resize(BaseTransform):
         data_key: str = "image",
         target_size: list = [],
         clip_to_input_range: bool = False,
+        antialias: bool = False,
+        mode: str = None,
     ):
         self.target_size = target_size
         self.data_key = data_key
         self.clip_to_input_range = clip_to_input_range
+        self.antialias = antialias
+        self.mode = mode
 
     @staticmethod
     def get_params():
@@ -28,6 +32,8 @@ class Torch_Resize(BaseTransform):
             data_dict[self.data_key],
             target_size=self.target_size,
             clip_to_input_range=self.clip_to_input_range,
+            antialias=self.antialias,
+            mode=self.mode,
         )
         return data_dict
 
